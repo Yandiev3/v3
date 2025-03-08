@@ -59,7 +59,6 @@ class CreateRequest(StatesGroup):
 # Состояние для добавления работника
 class AddWorker(StatesGroup):
     user_id = State()
-    phone = State()
 
 # Обработка команды /start
 @dp.message(Command("start"))
@@ -370,20 +369,9 @@ async def process_user_id(message: types.Message, state: FSMContext):
         await message.answer("❌ user_id должен быть числом. Попробуйте снова.")
         return
     
-    await state.update_data(user_id=int(user_id))
-    await message.answer("Введите номер телефона нового работника:")
-    await state.set_state(AddWorker.phone)
-
-# Обработка номера телефона
-@dp.message(AddWorker.phone)
-async def process_phone(message: types.Message, state: FSMContext):
-    phone = message.text
-    user_data = await state.get_data()
-    user_id = user_data['user_id']
-    
-    # Добавляем работника в базу данных
-    add_worker(user_id, phone)
-    await message.answer(f"✅ Работник с user_id {user_id} и номером {phone} успешно добавлен!", reply_markup=main_menu_admin)
+    # Добавляем работника
+    add_worker(int(user_id))
+    await message.answer(f"✅ Пользователь с user_id {user_id} теперь работник!", reply_markup=main_menu_admin)
     await state.clear()
 
 # Запуск бота
