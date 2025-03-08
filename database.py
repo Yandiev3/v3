@@ -59,8 +59,8 @@ def get_user_requests(user_id):
     cursor.execute('SELECT * FROM requests WHERE client_id = ? AND is_deleted = 0', (user_id,))
     return cursor.fetchall()
 
-def add_worker(user_id, phone):
-    cursor.execute('INSERT INTO users (user_id, phone, role) VALUES (?, ?, "worker")', (user_id, phone))
+def add_worker(user_id):
+    cursor.execute('INSERT INTO users (user_id, role) VALUES (?, "worker")', (user_id,))
     conn.commit()
 
 def get_all_workers():
