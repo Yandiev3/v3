@@ -60,7 +60,11 @@ def get_user_requests(user_id):
     return cursor.fetchall()
 
 def add_worker(user_id):
-    cursor.execute('INSERT INTO users (user_id, role) VALUES (?, "worker")', (user_id,))
+    user = get_user_by_user_id(user_id)
+    if user:
+        cursor.execute('UPDATE users SET role = "worker" WHERE user_id = ?', (user_id,))
+    else:
+        cursor.execute('INSERT INTO users (user_id, phone, role) VALUES (?, "", "worker")', (user_id,))
     conn.commit()
 
 def get_all_workers():
