@@ -58,7 +58,7 @@ class CreateRequest(StatesGroup):
 
 # Состояние для добавления работника
 class AddWorker(StatesGroup):
-    user_id = State()
+    user_id = State()  # Оставляем только user_id
 
 # Обработка команды /start
 @dp.message(Command("start"))
@@ -74,7 +74,7 @@ async def start(message: types.Message):
 - 🗑️ Удалить заявку
 - 📞 Связаться с поддержкой
 
-Нажмите кнопку "🛠️ Оставить заявку", чтобы начать! 🚀
+Нажмите кнопку "🛠️ Оставить заявку", чтобы начать! �
 """
     await message.answer(welcome_text, reply_markup=ReplyKeyboardMarkup(
         keyboard=[
