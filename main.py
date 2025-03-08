@@ -43,7 +43,8 @@ main_menu_admin = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='📋 Управление заявками')],
         [KeyboardButton(text='👷 Управление работниками')],
-        [KeyboardButton(text='📊 Статистика')]
+        [KeyboardButton(text='📊 Статистика')],
+        [KeyboardButton(text='➕ Добавить работника')]  # Новая кнопка
     ],
     resize_keyboard=True
 )
@@ -54,6 +55,11 @@ class CreateRequest(StatesGroup):
     address = State()  # Изменено с city на address
     contact_number = State()
     description = State()
+
+# Состояние для добавления работника
+class AddWorker(StatesGroup):
+    user_id = State()
+    phone = State()
 
 # Обработка команды /start
 @dp.message(Command("start"))
@@ -344,6 +350,41 @@ async def admin_manage_requests(message: types.Message):
 @dp.message(lambda message: message.text == '📞 Связаться с поддержкой')
 async def contact_support(message: types.Message):
     await message.answer("📞 Свяжитесь с нами:\nТелефон: +79319638381\nTelegram: @mercu3", reply_markup=main_menu_client)
+
+# Обработка кнопки "➕ Добавить работника"
+@dp.message(lambda message: message.text == '➕ Добавить работника')
+async def add_worker_command(message: types.Message, state: FSMContext):
+    user = get_user_by_user_id(message.from_user.id)
+    if not user or user[3] != 'admin':  # Проверяем, что пользователь — админ
+        await message.answer("❌ У вас нет доступа к этой команде.")
+        return
+    
+    await message.answer("Введите user_id нового работника:")
+    await state.set_state(AddWorker.user_id)
+
+# Обработка user_id
+@dp.message(AddWorker.user_id)
+async def process_user_id(message: types.Message, state: FSMContext):
+    user_id = message.text
+    if not user_id.isdigit():
+        await message.answer("❌ user_id должен быть числом. Попробуйте снова.")
+        return
+    
+    await state.update_data(user_id=int(user_id))
+    await message.answer("Введите номер телефона нового работника:")
+    await state.set_state(AddWorker.phone)
+
+# Обработка номера телефона
+@dp.message(AddWorker.phone)
+async def process_phone(message: types.Message, state: FSMContext):
+    phone = message.text
+    user_data = await state.get_data()
+    user_id = user_data['user_id']
+    
+    # Добавляем работника в базу данных
+    add_worker(user_id, phone)
+    await message.answer(f"✅ Работник с user_id {user_id} и номером {phone} успешно добавлен!", reply_markup=main_menu_admin)
+    await state.clear()
 
 # Запуск бота
 if __name__ == '__main__':
