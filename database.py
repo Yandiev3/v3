@@ -47,8 +47,11 @@ def add_request(category, description, client_id):
     cursor.execute('INSERT INTO requests (category, description, client_id) VALUES (?, ?, ?)', (category, description, client_id))
     conn.commit()
 
-def get_available_requests():
-    cursor.execute('SELECT * FROM requests WHERE status = "free" AND is_deleted = 0')
+def get_available_requests(category=None):
+    if category:
+        cursor.execute('SELECT * FROM requests WHERE status = "free" AND is_deleted = 0 AND category = ?', (category,))
+    else:
+        cursor.execute('SELECT * FROM requests WHERE status = "free" AND is_deleted = 0')
     return cursor.fetchall()
 
 def take_request(request_id, worker_id):
@@ -57,6 +60,10 @@ def take_request(request_id, worker_id):
 
 def get_user_requests(user_id):
     cursor.execute('SELECT * FROM requests WHERE client_id = ? AND is_deleted = 0', (user_id,))
+    return cursor.fetchall()
+
+def get_worker_requests(worker_id):
+    cursor.execute('SELECT * FROM requests WHERE worker_id = ? AND is_deleted = 0', (worker_id,))
     return cursor.fetchall()
 
 def add_worker(user_id):
@@ -71,8 +78,8 @@ def get_all_workers():
     cursor.execute('SELECT * FROM users WHERE role = "worker"')
     return cursor.fetchall()
 
-def delete_worker(worker_id):
-    cursor.execute('DELETE FROM users WHERE user_id = ?', (worker_id,))
+def demote_worker_to_client(worker_id):
+    cursor.execute('UPDATE users SET role = "client" WHERE user_id = ?', (worker_id,))
     conn.commit()
 
 def get_all_requests(include_deleted=False):
